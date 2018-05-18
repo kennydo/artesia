@@ -12,7 +12,7 @@ var configFilePath = flag.String("config", "configs/config.toml", "Path to the c
 
 func main() {
 	flag.Parse()
-                                             
+
 	config := app.NewDefaultConfig()
 	if _, err := toml.DecodeFile(*configFilePath, config); err != nil {
 		log.Fatal(err)
