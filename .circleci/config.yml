@@ -1,0 +1,56 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.10
+    environment:
+      DEP_VERSION: 0.4.1
+      GOMETALINTER_VERSION: 2.0.5
+    working_directory: /go/src/github.com/kennydo/artesia
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: gopkg-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+            - /go/src/github.com/kennydo/artesia/vendor
+
+      - run:
+          name: Ensure that dependencies are vendored
+          command: |
+            if [ ! -d /go/src/github.com/kennydo/artesia/vendor ]; then
+              wget https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -O /go/bin/dep
+              chmod a+x /go/bin/dep
+              /go/bin/dep ensure
+            fi
+
+      - save_cache:
+          key: gopkg-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+            - /go/src/github.com/kennydo/artesia/vendor
+
+
+      - restore_cache:
+          key: gopkg-{{ .Branch }}-{{ checksum ".gometalinter.json" }}
+          paths:
+            - /home/circleci/gometalinter
+
+      - run:
+          name:  Install gometalinter
+          command: |
+            if [ ! -d /home/circleci/gometalinter ]; then
+              cd /tmp
+              wget https://github.com/alecthomas/gometalinter/releases/download/v${GOMETALINTER_VERSION}/gometalinter-${GOMETALINTER_VERSION}-linux-amd64.tar.gz
+              tar xzvf gometalinter-${GOMETALINTER_VERSION}-linux-amd64.tar.gz
+              mv gometalinter-${GOMETALINTER_VERSION}-linux-amd64 /home/circleci/gometalinter
+            fi
+
+      - save_cache:
+          key: gopkg-{{ .Branch }}-{{ checksum ".gometalinter.json" }}
+          paths:
+            - /home/circleci/gometalinter
+
+      - run:
+          name: Run gometalinter
+          command: |
+            PATH=/home/circleci/gometalinter:$PATH gometalinter --skip vendor ./...
