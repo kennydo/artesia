@@ -9,11 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// Server contains information needed to start the HTTP Server
 type Server struct {
 	Log        *zap.SugaredLogger
 	httpServer *http.Server
 }
 
+// NewServer creates an instance of Server
 func NewServer() (*Server, error) {
 	bindAddress := "0.0.0.0:8080"
 
@@ -41,6 +43,7 @@ func NewServer() (*Server, error) {
 	return server, nil
 }
 
+// Run runs the HTTP Server
 func (s *Server) Run() error {
 	s.Log.Infof("Server listening on: %s", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
