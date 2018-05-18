@@ -8,8 +8,9 @@ import (
 	"github.com/kennydo/artesia/cmd/artesia/app"
 )
 
+var configFilePath = flag.String("config", "configs/config.toml", "Path to the config file")
+
 func main() {
-	configFilePath := flag.String("config", "configs/config.toml", "Path to the config file")
 	flag.Parse()
 
 	config := app.NewDefaultConfig()
