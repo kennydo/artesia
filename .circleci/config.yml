@@ -1,8 +1,54 @@
 version: 2
+
+_helpers:
+  - &circleci_golang_image
+    image: circleci/golang:1.10
 jobs:
+  incremental_lint:
+    docker:
+      - *circleci_golang_image
+    working_directory: /go/src/github.com/kennydo/artesia
+    steps:
+      - checkout
+
+      - run:
+          name: Install pre-commit
+          command: |
+            sudo apt-get install -y python-pip
+            sudo pip install pre-commit==1.8.2
+
+      - restore_cache:
+          key: pre-commit-hooks-{{ checksum ".pre-commit-config.yaml" }}
+
+      - run:
+          name: Reset the git repo back to the merge base with master
+          command: |
+            export MERGE_COMMIT=$(git merge-base origin/master $CIRCLE_BRANCH)
+            echo "Soft resetting git repo to commit $MERGE_COMMIT"
+            git reset --soft $MERGE_COMMIT
+            echo "Here's the files that pre-commit will run on:"
+            git status
+
+      - run:
+          name: Run pre-commit
+          command: |
+            pre-commit run
+
+      - run:
+          name: Print git diff
+          when: on_fail
+          command: |
+            git diff --exit-code
+
+      - save_cache:
+          key: pre-commit-hooks-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+          - ~/.pre-commit
+
+
   build:
     docker:
-      - image: circleci/golang:1.10
+      - *circleci_golang_image
     environment:
       DEP_VERSION: 0.4.1
       GOMETALINTER_VERSION: 2.0.5
@@ -12,8 +58,6 @@ jobs:
 
       - restore_cache:
           key: gopkg-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          paths:
-            - /go/src/github.com/kennydo/artesia/vendor
 
       - run:
           name: Ensure that dependencies are vendored
@@ -32,8 +76,6 @@ jobs:
 
       - restore_cache:
           key: gopkg-{{ .Branch }}-{{ checksum ".gometalinter.json" }}
-          paths:
-            - /home/circleci/gometalinter
 
       - run:
           name:  Install gometalinter
@@ -54,3 +96,10 @@ jobs:
           name: Run gometalinter
           command: |
             PATH=/home/circleci/gometalinter:$PATH gometalinter --skip vendor ./...
+
+workflows:
+  version: 2
+  primary_workflow:
+    jobs:
+      - incremental_lint
+      - build
