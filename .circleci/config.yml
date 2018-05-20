@@ -49,6 +49,11 @@ jobs:
   build:
     docker:
       - *circleci_golang_image
+      - image: postgres:10.4
+        environment:
+          POSTGRES_DB: artesia
+          POSTGRES_USER: artesia
+          POSTGRES_PASSWORD: saylamass
     environment:
       DEP_VERSION: 0.4.1
       GOMETALINTER_VERSION: 2.0.5
@@ -98,9 +103,15 @@ jobs:
             PATH=/home/circleci/gometalinter:$PATH gometalinter --skip vendor ./...
 
       - run:
+          name: Initialize the database
+          command: |
+            sudo apt-get install -y postgresql-client
+            psql postgres://artesia:saylamass@127.0.0.1:5432/artesia -f db/initdb/schema.sql
+
+      - run:
           name: Run tests
           command: |
-            go test -run '' ./...
+            ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -run '' ./...
 
 workflows:
   version: 2
