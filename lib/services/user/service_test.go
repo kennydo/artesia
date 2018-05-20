@@ -77,7 +77,7 @@ func (suite *DBServiceTestSuite) TestDuplicateCreateUserErrors() {
 	_, err := suite.service.CreateUser(email, plaintextPassword)
 	suite.Assert().Nil(err)
 
-	secondAttempt, err := suite.service.CreateUser(email, plaintextPassword)
+	secondAttempt, _ := suite.service.CreateUser(email, plaintextPassword)
 	suite.Assert().Nil(secondAttempt)
 }
 
