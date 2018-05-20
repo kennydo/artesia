@@ -1,9 +1,12 @@
 package user
 
 import (
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/kennydo/artesia/cmd/artesia/app"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -16,8 +19,24 @@ type DBServiceTestSuite struct {
 }
 
 func (suite *DBServiceTestSuite) SetupTest() {
-	db, err := sqlx.Connect("postgres", "host=127.0.0.1 user=artesia dbname=artesia password=saylamass sslmode=disable")
-	suite.Assert().Nil(err)
+	config, err := app.LoadConfig()
+	if err != nil {
+		// Errs during setup aren't handled by suite's helper methods, so we manually call Fatal
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	dbConnectInfo := fmt.Sprintf(
+		`host=%s dbname=%s user=%s password=%s sslmode=disable`,
+		config.Database.Host,
+		config.Database.DBName,
+		config.Database.User,
+		config.Database.Password,
+	)
+
+	db, err := sqlx.Connect("postgres", dbConnectInfo)
+	if err != nil {
+		log.Fatalf("Failed to connect to the DB: %v", err)
+	}
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()

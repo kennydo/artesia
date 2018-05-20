@@ -97,6 +97,11 @@ jobs:
           command: |
             PATH=/home/circleci/gometalinter:$PATH gometalinter --skip vendor ./...
 
+      - run:
+          name: Run tests
+          command: |
+            go test -run '' ./...
+
 workflows:
   version: 2
   primary_workflow:

@@ -1,0 +1,5 @@
+[Database]
+Host = "127.0.0.1"
+DBName = "artesia"
+User = "artesia"
+Password = "saylamass"
