@@ -19,7 +19,7 @@ type DBService struct {
 // GetByID gets a user by ID. Returns an error if no user is found.
 func (s *DBService) GetByID(id int) (*services.User, error) {
 	dbUser := DBUser{}
-	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE id = ?", id)
+	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE id = $1", id)
 	if err != nil {
 		return nil, fmt.Errorf("No user found")
 	}
@@ -31,7 +31,7 @@ func (s *DBService) GetByID(id int) (*services.User, error) {
 // GetByEmail gets a user by their (case-insensitive) email. Returns an error if no user is found.
 func (s *DBService) GetByEmail(email string) (*services.User, error) {
 	dbUser := DBUser{}
-	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE lower(email) = lower(?)", email)
+	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE lower(email) = lower($1)", email)
 	if err != nil {
 		return nil, fmt.Errorf("No user found")
 	}
@@ -54,7 +54,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 		return nil, fmt.Errorf("Invalid password")
 	}
 
-	result, err := s.db.NamedExec(
+	stmt, err := s.db.PrepareNamed(
 		`INSERT INTO users (
 			email,
 			password_hash,
@@ -63,24 +63,27 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 			:email,
 			:password_hash,
 			:created_at
-		)`,
-		&DBUser{
-			Email:        email,
-			PasswordHash: string(passwordHashBytes),
-			CreatedAt:    time.Now().In(time.UTC),
-		})
+		)
+		RETURNING id
+		`)
 	if err != nil {
-		s.log.Info("Unable to insert into users table", zap.Error(err))
-		return nil, fmt.Errorf("Unable to insert user")
-	}
-	lastInsertedID, err := result.LastInsertId()
-	if err != nil {
-		s.log.Info("Unable to get inserted user ID", zap.Error(err), zap.String("email", email))
-		return nil, fmt.Errorf("Unable to get inserted user ID")
+		s.log.Info("Unable to prepare insert statement", zap.Error(err))
+		return nil, fmt.Errorf("Unable to prepare user for insert")
 	}
 
-	s.log.Info("Created new user", zap.Int64("id", lastInsertedID), zap.String("email", email))
-	user, err := s.GetByID(int(lastInsertedID))
+	var insertedID int
+	err = stmt.Get(&insertedID, &DBUser{
+		Email:        email,
+		PasswordHash: string(passwordHashBytes),
+		CreatedAt:    time.Now().In(time.UTC),
+	})
+	if err != nil {
+		s.log.Info("Unable to insert user into DB", zap.Error(err), zap.String("email", email))
+		return nil, fmt.Errorf("Unable to insert user into DB")
+	}
+
+	s.log.Info("Created new user", zap.Int("id", insertedID), zap.String("email", email))
+	user, err := s.GetByID(insertedID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get user by ID")
 	}
