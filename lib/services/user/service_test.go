@@ -70,6 +70,17 @@ func (suite *DBServiceTestSuite) TestCreatingUser() {
 	suite.Assert().Equal(userGottenByEmail, createdUser)
 }
 
+func (suite *DBServiceTestSuite) TestDuplicateCreateUserErrors() {
+	email := "artesia@example.com"
+	plaintextPassword := "合言葉"
+
+	_, err := suite.service.CreateUser(email, plaintextPassword)
+	suite.Assert().Nil(err)
+
+	secondAttempt, err := suite.service.CreateUser(email, plaintextPassword)
+	suite.Assert().Nil(secondAttempt)
+}
+
 func TestExampleTestSuite(t *testing.T) {
 	suite.Run(t, new(DBServiceTestSuite))
 }
