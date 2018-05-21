@@ -11,5 +11,21 @@
   unused-packages = true
 
 [[constraint]]
-  name = "github.com/BurntSushi/toml"
-  version = "0.3.0"
+  branch = "master"
+  name = "github.com/jmoiron/sqlx"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/lib/pq"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  version = "1.0.2"

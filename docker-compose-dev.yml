@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:10.4
+    environment:
+      POSTGRES_DB: artesia
+      POSTGRES_USER: artesia
+      POSTGRES_PASSWORD: saylamass
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./db/initdb:/docker-entrypoint-initdb.d"
