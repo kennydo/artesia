@@ -5,6 +5,8 @@ import (
 	"log"
 	"testing"
 
+	"github.com/kennydo/artesia/lib/services"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/kennydo/artesia/cmd/artesia/app"
 	_ "github.com/lib/pq"
@@ -77,8 +79,21 @@ func (suite *DBServiceTestSuite) TestDuplicateCreateUserErrors() {
 	_, err := suite.service.CreateUser(email, plaintextPassword)
 	suite.Assert().Nil(err)
 
-	secondAttempt, _ := suite.service.CreateUser(email, plaintextPassword)
+	secondAttempt, err := suite.service.CreateUser(email, plaintextPassword)
 	suite.Assert().Nil(secondAttempt)
+	suite.Assert().Equal(err, services.ErrUserEmailTaken)
+}
+
+func (suite *DBServiceTestSuite) TestCreatingUserWithSameCanonicalEmailErrors() {
+	email := "artesia@example.com"
+	plaintextPassword := "合言葉"
+
+	_, err := suite.service.CreateUser(email, plaintextPassword)
+	suite.Assert().Nil(err)
+
+	similarEmail := "ArTeSiA@example.com"
+	_, err = suite.service.CreateUser(similarEmail, plaintextPassword)
+	suite.Assert().Equal(err, services.ErrUserEmailTaken)
 }
 
 func TestExampleTestSuite(t *testing.T) {

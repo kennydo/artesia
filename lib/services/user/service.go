@@ -21,7 +21,7 @@ func (s *DBService) GetByID(id int) (*services.User, error) {
 	dbUser := DBUser{}
 	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE id = $1", id)
 	if err != nil {
-		return nil, fmt.Errorf("No user found")
+		return nil, services.ErrUserNotFound
 	}
 
 	user := services.User(dbUser)
@@ -33,7 +33,7 @@ func (s *DBService) GetByEmail(email string) (*services.User, error) {
 	dbUser := DBUser{}
 	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE lower(email) = lower($1)", email)
 	if err != nil {
-		return nil, fmt.Errorf("No user found")
+		return nil, services.ErrUserNotFound
 	}
 
 	user := services.User(dbUser)
@@ -45,7 +45,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 	// We don't want to create a user if there's already one with the same email
 	existingUser, err := s.GetByEmail(email)
 	if existingUser != nil || err == nil {
-		return nil, fmt.Errorf("Email already taken")
+		return nil, services.ErrUserEmailTaken
 	}
 
 	passwordHashBytes, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), bcrypt.DefaultCost)
