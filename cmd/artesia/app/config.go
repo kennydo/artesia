@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -25,9 +26,9 @@ type DatabaseConfig struct {
 // LoadConfig tries to load a config file from the ARTESIA_CONFIG_FILE environment variable. It should be an absolute path
 func LoadConfig() (*Config, error) {
 	v := viper.New()
-	configFilePath, err := filepath.Abs(os.Getenv("ARTESIA_CONFIG_FILE"))
-	if err != nil {
-		return nil, err
+	configFilePath := os.Getenv("ARTESIA_CONFIG_FILE")
+	if !filepath.IsAbs(configFilePath) {
+		return nil, fmt.Errorf("Expected absolute path to config file but got: %s", configFilePath)
 	}
 
 	v.SetConfigFile(configFilePath)
@@ -37,7 +38,7 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("ListenAddress", "0.0.0.0:8080")
 	v.SetDefault("Database.Port", 5432)
 
-	err = v.ReadInConfig()
+	err := v.ReadInConfig()
 	if err != nil {
 		return nil, err
 	}
