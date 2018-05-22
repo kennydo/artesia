@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/kennydo/artesia/cmd/artesia/app/controllers"
 	"go.uber.org/zap"
 )
 
@@ -27,6 +28,28 @@ func NewServer(config *Config) (*Server, error) {
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode([]string{"Hello", "World"})
+	}).Methods("GET")
+	// Register routes for our app
+	mux.HandleFunc("/api/v1/instance", controllers.GetCurrentInstance).Methods("GET")
+	mux.HandleFunc("/api/v1/apps", controllers.RegisterOAuthApplication).Methods("POST")
+
+	// Register error handlers
+	mux.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sugarLogger.Info(
+			"No HTTP handler found",
+			zap.String("url", r.URL.String()),
+			zap.String("method", r.Method),
+		)
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sugarLogger.Info(
+			"HTTP method not allowed handler",
+			zap.String("url", r.URL.String()),
+			zap.String("method", r.Method),
+		)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	})
 
 	httpServer := &http.Server{
