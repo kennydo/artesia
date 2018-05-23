@@ -13,7 +13,7 @@ import (
 type Server struct {
 	Log        *zap.SugaredLogger
 	httpServer *http.Server
-	config     Config
+	config     *Config
 }
 
 // NewServer creates an instance of Server
@@ -39,6 +39,7 @@ func NewServer(config *Config) (*Server, error) {
 	server := &Server{
 		Log:        sugarLogger,
 		httpServer: httpServer,
+		config:     config,
 	}
 
 	return server, nil
