@@ -10,7 +10,7 @@ import (
 
 // Config contains config data for the server
 type Config struct {
-	ListenAddress string
+	ListenAddress string `mapstructure:"listen_address"`
 	Database      DatabaseConfig
 }
 

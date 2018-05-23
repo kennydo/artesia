@@ -7,12 +7,12 @@ import (
 )
 
 func main() {
-	_, err := app.LoadConfig()
+	config, err := app.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s, err := app.NewServer()
+	s, err := app.NewServer(config)
 	if err != nil {
 		log.Fatal(err)
 	}

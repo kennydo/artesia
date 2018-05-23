@@ -13,11 +13,12 @@ import (
 type Server struct {
 	Log        *zap.SugaredLogger
 	httpServer *http.Server
+	config     Config
 }
 
 // NewServer creates an instance of Server
-func NewServer() (*Server, error) {
-	bindAddress := "0.0.0.0:8080"
+func NewServer(config *Config) (*Server, error) {
+	bindAddress := config.ListenAddress
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -45,6 +46,6 @@ func NewServer() (*Server, error) {
 
 // Run runs the HTTP Server
 func (s *Server) Run() error {
-	s.Log.Infof("Server listening on: %s", s.httpServer.Addr)
+	s.Log.Infof("Server listening on: http://%s", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
 }
