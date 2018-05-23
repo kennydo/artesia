@@ -35,7 +35,7 @@ func NewServer(config *Config) (*Server, error) {
 
 	// Register error handlers
 	mux.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sugarLogger.Info(
+		sugarLogger.Infow(
 			"No HTTP handler found",
 			zap.String("url", r.URL.String()),
 			zap.String("method", r.Method),
@@ -44,7 +44,7 @@ func NewServer(config *Config) (*Server, error) {
 	})
 
 	mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sugarLogger.Info(
+		sugarLogger.Infow(
 			"HTTP method not allowed handler",
 			zap.String("url", r.URL.String()),
 			zap.String("method", r.Method),

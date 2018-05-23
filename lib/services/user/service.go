@@ -50,7 +50,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 
 	passwordHashBytes, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), bcrypt.DefaultCost)
 	if err != nil {
-		s.log.Info("Unable to hash password", zap.Error(err), zap.String("email", email))
+		s.log.Infow("Unable to hash password", zap.Error(err), zap.String("email", email))
 		return nil, fmt.Errorf("Invalid password")
 	}
 
@@ -67,7 +67,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 		RETURNING id
 		`)
 	if err != nil {
-		s.log.Info("Unable to prepare insert statement", zap.Error(err))
+		s.log.Infow("Unable to prepare insert statement", zap.Error(err))
 		return nil, fmt.Errorf("Unable to prepare user for insert")
 	}
 
@@ -78,11 +78,11 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 		CreatedAt:    time.Now().In(time.UTC),
 	})
 	if err != nil {
-		s.log.Info("Unable to insert user into DB", zap.Error(err), zap.String("email", email))
+		s.log.Infow("Unable to insert user into DB", zap.Error(err), zap.String("email", email))
 		return nil, fmt.Errorf("Unable to insert user into DB")
 	}
 
-	s.log.Info("Created new user", zap.Int("id", insertedID), zap.String("email", email))
+	s.log.Infow("Created new user", zap.Int("id", insertedID), zap.String("email", email))
 	user, err := s.GetByID(insertedID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get user by ID")
