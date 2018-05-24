@@ -12,10 +12,12 @@ import (
 
 // Server contains information needed to start the HTTP Server
 type Server struct {
-	Log        *zap.SugaredLogger
+	log        *zap.SugaredLogger
 	httpServer *http.Server
 	config     *Config
 }
+
+type artesiaHandlerFunc func(*zap.SugaredLogger, http.ResponseWriter, *http.Request)
 
 // NewServer creates an instance of Server
 func NewServer(config *Config) (*Server, error) {
@@ -26,31 +28,6 @@ func NewServer(config *Config) (*Server, error) {
 	sugarLogger := logger.Sugar()
 
 	mux := mux.NewRouter()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]string{"Hello", "World"})
-	}).Methods("GET")
-	// Register routes for our app
-	mux.HandleFunc("/api/v1/instance", controllers.GetCurrentInstance).Methods("GET")
-	mux.HandleFunc("/api/v1/apps", controllers.RegisterOAuthApplication).Methods("POST")
-
-	// Register error handlers
-	mux.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sugarLogger.Infow(
-			"No HTTP handler found",
-			zap.String("url", r.URL.String()),
-			zap.String("method", r.Method),
-		)
-		w.WriteHeader(http.StatusNotFound)
-	})
-
-	mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sugarLogger.Infow(
-			"HTTP method not allowed handler",
-			zap.String("url", r.URL.String()),
-			zap.String("method", r.Method),
-		)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	})
 
 	httpServer := &http.Server{
 		Handler:      mux,
@@ -60,16 +37,34 @@ func NewServer(config *Config) (*Server, error) {
 	}
 
 	server := &Server{
-		Log:        sugarLogger,
+		log:        sugarLogger,
 		httpServer: httpServer,
 		config:     config,
 	}
 
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]string{"Hello", "World"})
+	}).Methods("GET")
+
+	// Register routes for our app
+	mux.HandleFunc("/api/v1/instance", server.addMiddleware(controllers.GetCurrentInstance)).Methods("GET")
+	mux.HandleFunc("/api/v1/apps", server.addMiddleware(controllers.RegisterOAuthApplication)).Methods("POST")
+
+	// Register error handlers
+	mux.NotFoundHandler = server.addMiddleware(controllers.NotFound)
+	mux.MethodNotAllowedHandler = server.addMiddleware(controllers.MethodNotAllowed)
+
 	return server, nil
+}
+
+func (s *Server) addMiddleware(h artesiaHandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h(s.log, w, r)
+	}
 }
 
 // Run runs the HTTP Server
 func (s *Server) Run() error {
-	s.Log.Infof("Server listening on: http://%s", s.httpServer.Addr)
+	s.log.Infof("Server listening on: https://%s", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
 }

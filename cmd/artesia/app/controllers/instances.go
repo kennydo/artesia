@@ -3,6 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 // URLs has data about related URLs for this instance
@@ -22,7 +24,7 @@ type Instance struct {
 }
 
 // GetCurrentInstance returns information about this instance
-func GetCurrentInstance(w http.ResponseWriter, r *http.Request) {
+func GetCurrentInstance(log *zap.SugaredLogger, w http.ResponseWriter, r *http.Request) {
 	currentInstance := Instance{
 		URI:         r.Host,
 		Title:       "artesia",
