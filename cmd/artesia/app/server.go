@@ -65,6 +65,6 @@ func (s *Server) addMiddleware(h artesiaHandlerFunc) http.HandlerFunc {
 
 // Run runs the HTTP Server
 func (s *Server) Run() error {
-	s.log.Infof("Server listening on: https://%s", s.httpServer.Addr)
+	s.log.Infof("Server listening on: http://%s", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
 }
