@@ -5,7 +5,7 @@ import "time"
 // Client represents an OAuth client's model in the db
 type Client struct {
 	ID          int    `db:"id"`
-	ExternalID  string `db:"externalId"`
+	ExternalID  string `db:"external_id"`
 	Secret      string `db:"secret"`
 	RedirectURI string `db:"redirect_uri"`
 	UserData    string `db:"user_data"`
@@ -14,7 +14,7 @@ type Client struct {
 // Authorization represents an OAuth client's authorization (who they are)
 type Authorization struct {
 	ID          int       `db:"id"`
-	ClientID    int       `db:"clientId"`
+	ClientID    int       `db:"client_id"`
 	Code        string    `db:"code"`
 	Expiration  int32     `db:"expiration"`
 	Scope       string    `db:"scope"`
