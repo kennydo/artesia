@@ -12,6 +12,7 @@ type Service struct {
 	db  *sqlx.DB
 }
 
+// AuthorizeID is the ID of an authorization object
 type AuthorizeID string
 
 // GetClientByID returns an osin.Client by its ID
@@ -53,6 +54,7 @@ func (s *Service) GetAuthorizationClientByID(id int) (osin.AuthorizeData, error)
 	}, nil
 }
 
+// CreateClient creates a client DB object
 func (s *Service) CreateClient(client osin.Client) error {
 	_, err := s.db.Exec(
 		`INSERT INTO clients (
@@ -65,12 +67,10 @@ func (s *Service) CreateClient(client osin.Client) error {
 		client.GetRedirectUri(),
 		client.GetUserData(),
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
+// CreateAuthorizationData creates a DB authorization object
 func (s *Service) CreateAuthorizationData(data osin.AuthorizeData) error {
 	_, err := s.db.Exec(
 		`INSERT INTO authorizations (
@@ -94,12 +94,10 @@ func (s *Service) CreateAuthorizationData(data osin.AuthorizeData) error {
 		data.CreatedAt,
 		data.UserData,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
+// CreateAccess creates an access token DB object
 func (s *Service) CreateAccess(authID AuthorizeID, data osin.AccessData) error {
 	_, err := s.db.Exec(
 		`INSERT INTO access_tokens (
@@ -121,8 +119,5 @@ func (s *Service) CreateAccess(authID AuthorizeID, data osin.AccessData) error {
 		data.RedirectUri,
 		data.CreatedAt,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
