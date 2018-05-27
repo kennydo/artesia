@@ -3,12 +3,10 @@ package oauth
 import (
 	"github.com/RangelReale/osin"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 )
 
 // Service implements the Oauth service, returning Oauth data from the DB
 type Service struct {
-	log *zap.SugaredLogger
 	db  *sqlx.DB
 }
 
@@ -30,7 +28,7 @@ func (s *Service) GetClientByID(id int) (osin.Client, error) {
 	}, nil
 }
 
-// GetAuthorizationClientById returns osin.AuthorizationData for a client
+// GetAuthorizationClientByID returns osin.AuthorizationData for a client
 // TODO: make canned erors
 func (s *Service) GetAuthorizationClientByID(id int) (osin.AuthorizeData, error) {
 	dbAuthorization := Authorization{}
