@@ -181,4 +181,3 @@ ALTER TABLE ONLY public.access_tokens ALTER COLUMN id SET DEFAULT nextval('publi
 --
 -- PostgreSQL database dump complete
 --
-
