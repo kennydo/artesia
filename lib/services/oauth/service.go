@@ -1,14 +1,9 @@
 package oauth
 
 import (
-	//	"fmt"
-	//	"time"
-
-	"github.com/jmoiron/sqlx"
-	//	"github.com/kennydo/artesia/lib/services"
 	"github.com/RangelReale/osin"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
-	//	"golang.org/x/crypto/bcrypt"
 )
 
 // Service implements the Oauth service, returning Oauth data from the DB
@@ -16,6 +11,8 @@ type Service struct {
 	log *zap.SugaredLogger
 	db  *sqlx.DB
 }
+
+type AuthorizeID string
 
 // GetClientByID returns an osin.Client by its ID
 func (s *Service) GetClientByID(id int) (osin.Client, error) {
@@ -54,4 +51,78 @@ func (s *Service) GetAuthorizationClientByID(id int) (osin.AuthorizeData, error)
 		RedirectUri: dbAuthorization.RedirectURI,
 		UserData:    dbAuthorization.UserData,
 	}, nil
+}
+
+func (s *Service) CreateClient(client osin.Client) error {
+	_, err := s.db.Exec(
+		`INSERT INTO clients (
+                        external_id,
+                        secret,
+                        redirect_uri,
+                        user_data) VALUES ($1, $2, $3, $4)`,
+		client.GetId(),
+		client.GetSecret(),
+		client.GetRedirectUri(),
+		client.GetUserData(),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) CreateAuthorizationData(data osin.AuthorizeData) error {
+	_, err := s.db.Exec(
+		`INSERT INTO authorizations (
+                     client_id,
+                     code,
+                     expiration,
+                     scope,
+                     redirect_uri,
+                     external_id,
+                     state_data,
+                     secret,
+                     created_at,
+                     user_data
+                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		data.Client.GetId(),
+		data.Code,
+		data.ExpiresIn,
+		data.Scope,
+		data.RedirectUri,
+		data.State,
+		data.CreatedAt,
+		data.UserData,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) CreateAccess(authID AuthorizeID, data osin.AccessData) error {
+	_, err := s.db.Exec(
+		`INSERT INTO access_tokens (
+                     client_id,
+                     authorize_id,
+                     token,
+                     refresh_token,
+                     expiration,
+                     scope,
+                     redirect_uri,
+                     created_at
+                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		data.Client.GetId(),
+		authID,
+		data.AccessToken,
+		data.RefreshToken,
+		data.ExpiresIn,
+		data.Scope,
+		data.RedirectUri,
+		data.CreatedAt,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
