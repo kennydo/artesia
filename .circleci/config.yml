@@ -113,6 +113,9 @@ jobs:
           command: |
             ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -run '' ./...
 
+      - store_test_results:
+          path: foo
+
 workflows:
   version: 2
   primary_workflow:

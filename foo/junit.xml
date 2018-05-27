@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<testsuites disabled="0" errors="0" failures="2" tests="4" time="0.875826">
+	<testsuite disabled="0" errors="0" failures="2" name="mypy" skipped="0" tests="4" time="0.875826" timestamp="2017-11-01T01:23:45.000000">
+		<testcase classname="pkg/__init__.py" name="pkg/__init__.py" time="0.218956"/>
+		<testcase classname="pkg/bar.py" name="pkg/bar.py" time="0.218956">
+			<failure message="mypy produced messages" type="failure">
+pkg/bar.py:2: error: The return type of &quot;__init__&quot; must be None</failure>
+		</testcase>
+		<testcase classname="pkg/baz.py" name="pkg/baz.py" time="0.218956"/>
+		<testcase classname="pkg/foo.py" name="pkg/foo.py" time="0.218956">
+			<failure message="mypy produced messages" type="failure">
+pkg/foo.py:3: error: Self argument missing for a non-static method (or an invalid type for self)
+pkg/foo.py:4: error: Incompatible return value type (got &quot;str&quot;, expected &quot;int&quot;)</failure>
+		</testcase>
+	</testsuite>
+</testsuites>
