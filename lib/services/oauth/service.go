@@ -7,7 +7,7 @@ import (
 
 // Service implements the Oauth service, returning Oauth data from the DB
 type Service struct {
-	db  *sqlx.DB
+	db *sqlx.DB
 }
 
 // AuthorizeID is the ID of an authorization object
