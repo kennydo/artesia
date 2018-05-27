@@ -120,7 +120,7 @@ jobs:
           name: Run tests
           command: |
             trap "go-junit-report <${TEST_RESULTS_DIR}/go-test.out > ${TEST_RESULTS_DIR}/go-test-report.xml" EXIT
-            ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -run '' ./... | tee ${TEST_RESULTS_DIR}/go-test.out
+            ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -v ./... | tee ${TEST_RESULTS_DIR}/go-test.out
 
       - store_artifacts:
           path: /tmp/test-results
