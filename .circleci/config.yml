@@ -57,9 +57,12 @@ jobs:
     environment:
       DEP_VERSION: 0.4.1
       GOMETALINTER_VERSION: 2.0.5
+      TEST_RESULTS_DIR: /tmp/test-results
     working_directory: /go/src/github.com/kennydo/artesia
     steps:
       - checkout
+
+      - run: mkdir -p ${TEST_RESULTS_DIR}
 
       - restore_cache:
           key: gopkg-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
@@ -92,6 +95,11 @@ jobs:
               mv gometalinter-${GOMETALINTER_VERSION}-linux-amd64 /home/circleci/gometalinter
             fi
 
+      - run:
+          name: Install go utiltiies
+          command: |
+            go get github.com/jstemmer/go-junit-report
+
       - save_cache:
           key: gopkg-{{ .Branch }}-{{ checksum ".gometalinter.json" }}
           paths:
@@ -111,7 +119,15 @@ jobs:
       - run:
           name: Run tests
           command: |
-            ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -run '' ./...
+            trap "go-junit-report <${TEST_RESULTS_DIR}/go-test.out > ${TEST_RESULTS_DIR}/go-test-report.xml" EXIT
+            ARTESIA_CONFIG_FILE=$PWD/configs/config_test_circleci.toml go test -run '' ./... | tee ${TEST_RESULTS_DIR}/go-test.out
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
 
 workflows:
   version: 2
