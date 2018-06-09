@@ -50,11 +50,12 @@ func (suite *DBServiceTestSuite) SetupTest() {
 	suite.service = &DBService{
 		log: sugarLogger,
 	}
-	suite.ctx = context.TODO()
+	suite.ctx = context.Background()
 	suite.tx = db.MustBegin()
 }
 
 func (suite *DBServiceTestSuite) TearDownTest() {
+	suite.tx.Rollback()
 }
 
 func (suite *DBServiceTestSuite) TestCreatingUser() {

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.4 (Debian 10.4-1.pgdg90+1)
--- Dumped by pg_dump version 10.3 (Ubuntu 10.3-1)
+-- Dumped from database version 10.4 (Debian 10.4-2.pgdg90+1)
+-- Dumped by pg_dump version 10.4 (Debian 10.4-2.pgdg90+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -38,7 +38,7 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE public.users (
-    id bigint NOT NULL,
+    id uuid NOT NULL,
     email character varying(256) NOT NULL,
     password_hash character varying(128) NOT NULL,
     created_at timestamp with time zone NOT NULL
@@ -48,46 +48,11 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO artesia;
 
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: artesia
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: artesia
 --
 
-CREATE SEQUENCE public.users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.users_id_seq OWNER TO artesia;
-
---
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: artesia
---
-
-ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
-
-
---
--- Name: users id; Type: DEFAULT; Schema: public; Owner: artesia
---
-
-ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
-
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: artesia
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: uq_email; Type: INDEX; Schema: public; Owner: artesia
---
-
-CREATE UNIQUE INDEX uq_email ON public.users USING btree (lower((email)::text));
+COPY public.users (id, email, password_hash, created_at) FROM stdin;
+\.
 
 
 --
