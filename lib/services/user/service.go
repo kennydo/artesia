@@ -81,10 +81,21 @@ func (s *DBService) CreateUser(ctx context.Context, tx *sqlx.Tx, email string, p
 		CreatedAt:    time.Now().In(time.UTC),
 	}
 
-	_, err = stmt.ExecContext(ctx, &newUser)
+	result, err := stmt.ExecContext(ctx, &newUser)
 	if err != nil {
 		s.log.Infow("Unable to insert user into DB", zap.Error(err), zap.String("email", email))
-		return nil, fmt.Errorf("Unable to insert user into DB")
+		return nil, services.ErrUnableToCreateUser
+	}
+
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		s.log.Infow("Unable to get newly inserted row", zap.Error(err), zap.String("id", newUser.ID))
+		return nil, services.ErrUnableToCreateUser
+	}
+
+	if numRowsAffected != 1 {
+		s.log.Infow("Inserting new user did not affect one row", zap.Int64("numRowsAffected", numRowsAffected))
+		return nil, services.ErrUnableToCreateUser
 	}
 
 	s.log.Infow("Created new user", zap.String("id", newUser.ID), zap.String("email", email))

@@ -11,6 +11,9 @@ var ErrUserNotFound = errors.New("User not found")
 // ErrUserEmailTaken is returned when a user's email is already taken
 var ErrUserEmailTaken = errors.New("User email is taken")
 
+// ErrUnableToCreateUser is returned when we're unable to create a user
+var ErrUnableToCreateUser = errors.New("Unable to create user")
+
 // User represents a local user that can login and do things
 type User struct {
 	ID           string
