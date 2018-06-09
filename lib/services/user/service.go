@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -13,13 +14,12 @@ import (
 // DBService implements the user service, backed by the DB
 type DBService struct {
 	log *zap.SugaredLogger
-	db  *sqlx.DB
 }
 
 // GetByID gets a user by ID. Returns an error if no user is found.
-func (s *DBService) GetByID(id int) (*services.User, error) {
+func (s *DBService) GetByID(ctx context.Context, tx *sqlx.Tx, id int) (*services.User, error) {
 	dbUser := DBUser{}
-	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE id = $1", id)
+	err := tx.GetContext(ctx, &dbUser, "SELECT * FROM users WHERE id = $1", id)
 	if err != nil {
 		return nil, services.ErrUserNotFound
 	}
@@ -29,9 +29,9 @@ func (s *DBService) GetByID(id int) (*services.User, error) {
 }
 
 // GetByEmail gets a user by their (case-insensitive) email. Returns an error if no user is found.
-func (s *DBService) GetByEmail(email string) (*services.User, error) {
+func (s *DBService) GetByEmail(ctx context.Context, tx *sqlx.Tx, email string) (*services.User, error) {
 	dbUser := DBUser{}
-	err := s.db.Get(&dbUser, "SELECT * FROM users WHERE lower(email) = lower($1)", email)
+	err := tx.GetContext(ctx, &dbUser, "SELECT * FROM users WHERE lower(email) = lower($1)", email)
 	if err != nil {
 		return nil, services.ErrUserNotFound
 	}
@@ -41,9 +41,9 @@ func (s *DBService) GetByEmail(email string) (*services.User, error) {
 }
 
 // CreateUser creates a user. Returns an error if unable to create user.
-func (s *DBService) CreateUser(email string, plaintextPassword string) (*services.User, error) {
+func (s *DBService) CreateUser(ctx context.Context, tx *sqlx.Tx, email string, plaintextPassword string) (*services.User, error) {
 	// We don't want to create a user if there's already one with the same email
-	existingUser, err := s.GetByEmail(email)
+	existingUser, err := s.GetByEmail(ctx, tx, email)
 	if existingUser != nil || err == nil {
 		return nil, services.ErrUserEmailTaken
 	}
@@ -54,7 +54,8 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 		return nil, fmt.Errorf("Invalid password")
 	}
 
-	stmt, err := s.db.PrepareNamed(
+	stmt, err := tx.PrepareNamedContext(
+		ctx,
 		`INSERT INTO users (
 			email,
 			password_hash,
@@ -72,7 +73,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 	}
 
 	var insertedID int
-	err = stmt.Get(&insertedID, &DBUser{
+	err = stmt.GetContext(ctx, &insertedID, &DBUser{
 		Email:        email,
 		PasswordHash: string(passwordHashBytes),
 		CreatedAt:    time.Now().In(time.UTC),
@@ -83,7 +84,7 @@ func (s *DBService) CreateUser(email string, plaintextPassword string) (*service
 	}
 
 	s.log.Infow("Created new user", zap.Int("id", insertedID), zap.String("email", email))
-	user, err := s.GetByID(insertedID)
+	user, err := s.GetByID(ctx, tx, insertedID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get user by ID")
 	}

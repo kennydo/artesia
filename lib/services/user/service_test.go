@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -18,6 +19,8 @@ import (
 type DBServiceTestSuite struct {
 	suite.Suite
 	service *DBService
+	ctx     context.Context
+	tx      *sqlx.Tx
 }
 
 func (suite *DBServiceTestSuite) SetupTest() {
@@ -45,20 +48,20 @@ func (suite *DBServiceTestSuite) SetupTest() {
 	sugarLogger := logger.Sugar()
 
 	suite.service = &DBService{
-		db:  db,
 		log: sugarLogger,
 	}
+	suite.ctx = context.TODO()
+	suite.tx = db.MustBegin()
 }
 
 func (suite *DBServiceTestSuite) TearDownTest() {
-	suite.service.db.Exec("TRUNCATE TABLE users")
 }
 
 func (suite *DBServiceTestSuite) TestCreatingUser() {
 	email := "artesia@example.com"
 	plaintextPassword := "合言葉"
 
-	createdUser, err := suite.service.CreateUser(email, plaintextPassword)
+	createdUser, err := suite.service.CreateUser(suite.ctx, suite.tx, email, plaintextPassword)
 	suite.Assert().Nil(err)
 
 	suite.Assert().Equal(createdUser.Email, email)
@@ -66,7 +69,7 @@ func (suite *DBServiceTestSuite) TestCreatingUser() {
 	err = bcrypt.CompareHashAndPassword([]byte(createdUser.PasswordHash), []byte(plaintextPassword))
 	suite.Assert().Nil(err)
 
-	userGottenByEmail, err := suite.service.GetByEmail(email)
+	userGottenByEmail, err := suite.service.GetByEmail(suite.ctx, suite.tx, email)
 	suite.Assert().Nil(err)
 
 	suite.Assert().Equal(userGottenByEmail, createdUser)
@@ -76,10 +79,10 @@ func (suite *DBServiceTestSuite) TestDuplicateCreateUserErrors() {
 	email := "artesia@example.com"
 	plaintextPassword := "合言葉"
 
-	_, err := suite.service.CreateUser(email, plaintextPassword)
+	_, err := suite.service.CreateUser(suite.ctx, suite.tx, email, plaintextPassword)
 	suite.Assert().Nil(err)
 
-	secondAttempt, err := suite.service.CreateUser(email, plaintextPassword)
+	secondAttempt, err := suite.service.CreateUser(suite.ctx, suite.tx, email, plaintextPassword)
 	suite.Assert().Nil(secondAttempt)
 	suite.Assert().Equal(err, services.ErrUserEmailTaken)
 }
@@ -88,11 +91,11 @@ func (suite *DBServiceTestSuite) TestCreatingUserWithSameCanonicalEmailErrors() 
 	email := "artesia@example.com"
 	plaintextPassword := "合言葉"
 
-	_, err := suite.service.CreateUser(email, plaintextPassword)
+	_, err := suite.service.CreateUser(suite.ctx, suite.tx, email, plaintextPassword)
 	suite.Assert().Nil(err)
 
 	similarEmail := "ArTeSiA@example.com"
-	_, err = suite.service.CreateUser(similarEmail, plaintextPassword)
+	_, err = suite.service.CreateUser(suite.ctx, suite.tx, similarEmail, plaintextPassword)
 	suite.Assert().Equal(err, services.ErrUserEmailTaken)
 }
 
