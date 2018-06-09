@@ -58,12 +58,12 @@ func (s *DBService) CreateUser(ctx context.Context, tx *sqlx.Tx, email string, p
 	stmt, err := tx.PrepareNamedContext(
 		ctx,
 		`INSERT INTO users (
-      id,
+			id,
 			email,
 			password_hash,
 			created_at
 		) VALUES (
-      :id,
+			:id,
 			:email,
 			:password_hash,
 			:created_at
