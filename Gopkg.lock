@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/RangelReale/osin"
+  packages = ["."]
+  revision = "92fc3c3539125bddc695a988974243479d82f8b4"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -71,6 +77,12 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+
+[[projects]]
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
+  version = "v1.1"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -189,6 +201,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "af3e05a17e9a90404261aa09301efd1250fe3ed53bbdbb24ca13e4f04c85eb16"
+  inputs-digest = "7702be597ec646c5c73bc492239e130bb699d2bce3a6b876ea2ec66480983ebf"
   solver-name = "gps-cdcl"
   solver-version = 1
